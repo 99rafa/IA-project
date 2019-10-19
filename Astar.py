@@ -1,23 +1,16 @@
 import math
 
 class Junction:
-    
-    def __init__(sefl,id,d,transitions,p,n):
+
+    def __init__(self,id,d,p = None):
 
         self.id = id
-        self.parent = []    
+        self.parent = p
         self.d = d
-        self.transitions = transitions
         self.transport = []
-        self.p = []
-        self.f1 = [] #bilhetes usados ate este ponto
-        self.f2 = [] #caminho ate ao ponto mais distancia ate goal
+        self.tickets = 0 #bilhetes usados ate este ponto
+        self.sum = 0 #caminho ate ao ponto mais distancia ate goal
 
-        for i in range(n):
-            self.parent.append(None)
-            self.p.append(p[i])
-            self.f1.append(0)
-            self.f2.append(0)
 
     def __eq__(self,other):
         return self.id == other.id
@@ -32,94 +25,91 @@ def checkempty(size,list):
     return True
 
 def Astar(map,coords,start,goal,lim_exp,lim_depth):
-    
+
     #initialize
-    start_junc = []
-    end_junc = []
-    dist = []
-    oridist = []
-    for i in  range(len(start)):
-        dist.append([])
-        oridist.append
-        for j in range(len(goal)):
-            dist[i].append(distance(coords[start[i] + 1][0],coords[start[i][1],coords[goal[j] + 1][0],coords[goal[j] + 1][1]]))
+
+    dist = distance(coords[start-1 ][0],coords[start-1][1],coords[goal -1][0],coords[goal -1 ][1])
 
 
-    for i in range(len(start)):
-        start_junc.append(Junction(start[i],dist[i],coords[start[i] + 1][1]),map[start[i]],0))
+    start_junc = Junction(start,dist)
 
-    
-    for i in goal:
-        end_junc.append(Junction(goal[i],0,map[goal],0))
+
+    end_junc = Junction(goal,0)
 
 
     exp_list = []
     ger_list = []
-    for i in range(len(start)):
 
 
-    for i in range(len(start)):
-        ger_list.append([start_junc[i]])
-        exp_list.append([])
-
-    
-    size = len(ger_list)
-    while not checkempty(size,ger_list):
-    
+    ger_list.append(start_junc)
 
 
+    while len(ger_list) > 0:
+
+       
         #Atualiza o node a ser expandido para cada agente
-        current_nodes = []
-        current_indexs = []
-        for i in range(size):
-            current_nodes.append(ger_list[i][0])
-            current_indexs.append(0)
-            for j, node in enumerate(ger_list[i]):
-                if node.f1[i] < current_nodes[i].f1[i]
-                    current_nodes[i] = node
-                    current_indexs[i] = j
+        current_node = ger_list[0]
+        current_index = 0
+        for j, node in enumerate(ger_list):
 
-            ger_list[i].pop(current_indexs[i])
-            exp_list[i].append(current_nodes[i])
+            if node.sum < current_node.sum :
 
-        #Verifica se tao todos no goal
-        check = 0
-        for i in range(size):
-            if( current_nodes[i] == end_junc[i])
-                check += 1
-            
-        if (check == size):
+                current_node = node
+                current_index = j
+
+        ger_list.pop(current_index)
+        exp_list.append(current_node)
+
+  
+        #Verifica se esta no goal
+        
+        if current_node == end_junc:
             #perfect
-            
 
-            res = []    
-            for i in range(current_nodes[0]):
-                res.append([])
 
-            for i in range(size):
-                current = current_nodes[i]
-                j = 0
-                while current is not None:
-                    res[j].append(current.id[i])
-                    current = current.parent[i]
-                    j+=1
-            
+            res = []
+            current = current_node
+            while current is not None:
+                res.append([current.transport,[current.id]])
+                current = current.parent
+
+            print(res)
             return res[::-1] # Return reversed path
 
+        adjacentJuncs =[]
 
-            pass
+
+        for newJunc in map[current_node.id ]:
             
-        
+            
+            newJuncID = newJunc[1]
+            newJuncDist = distance(coords[newJuncID -1][0],coords[newJuncID -1 ][1], coords[goal -1 ][0],coords[goal -1 ][1])
+            childJunc = Junction(newJuncID, newJuncDist,current_node)
 
+            newJuncTransport = newJunc[0]
+            adjacentJuncs.append([newJuncTransport,childJunc])
+       
+       #adjac[0] -> meio de transporte para essa junction
+       #adjac[1] -> estrutura da junction
+  
+        for adjac in adjacentJuncs:
 
+            for exp_junc in exp_list:
+                if adjac[1] == exp_junc:
+                    continue
 
-        
+            adjac[1].tickets = current_node.tickets + 1
+            adjac[1].sum = adjac[1].d + adjac[1].tickets
 
+            # Child is already in the open list
 
+            for junc in ger_list:
+                if junc == adjac[1] and adjac[1].tickets > junc.tickets:
+                    continue
 
-    
-    
+            # Add the child to the open list
+            adjac[1].transport = [adjac[0]]  #tem que ser uma lista de um elemento por causa do formato do result
+            ger_list.append(adjac[1])
 
-
-    
+          
 
