@@ -23,14 +23,13 @@ class SearchProblem:
   
 
   def search(self, init, limitexp = 2000, limitdepth = 10, tickets = [math.inf,math.inf,math.inf]):
-    ##
-    ## to implement
-    ##
+  
 
     size = len(init)
 
+
     for i in range(size):
-      solution = Astar(self.model, self.auxheur, init[i], self.goal[i], limitexp, limitdepth)
+      solution = Astar(self.model, self.auxheur, init[i], self.goal[i], limitexp, limitdepth, tickets)
 
 
     return solution

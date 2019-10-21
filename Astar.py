@@ -2,20 +2,25 @@ import math
 
 class Junction:
 
-    def __init__(self,id,d,p = None):
+    def __init__(self,id,d,p = None, totalTransport = [0,0,0]):
 
         self.id = id
         self.parent = p
         self.d = d
-        self.transport = []
-        self.tickets = 0 #bilhetes usados ate este ponto
-        self.sum = 0 #caminho ate ao ponto mais distancia ate goal
+        self.transport = [] 
+        self.totalTransport = totalTransport #transporte até aquele ponto
+        self.tickets = 0 #bilhetes ate este ponto
+        self.sum = self.d + self.tickets #caminho ate ao ponto mais distancia ate goal
 
 
     def __eq__(self,other):
-        return self.id == other.id
+        if self.parent and other.parent:
+            return self.id == other.id and self.parent.id == other.parent.id and self.transport == other.transport
+        else:
+             return self.id == other.id and self.transport == other.transport
 
-def distance(x1,y1,x2,y2):
+
+def distance(x1,x2,y1,y2):
     return math.sqrt((x1-x2)**2 + (y1 - y2)**2)
 
 def checkempty(size,list):
@@ -24,17 +29,39 @@ def checkempty(size,list):
             return False
     return True
 
-def Astar(map,coords,start,goal,lim_exp,lim_depth):
+def cleanExpList(exp_list, limit):
+    for j,junc in enumerate(exp_list):
+        if junc.tickets > limit:
+            exp_list.pop(j)
+    return exp_list
+
+
+def getNewLim(ger_list):
+    newLim = ger_list[0].tickets
+    for i in ger_list:
+        if i.tickets < newLim:
+            newLim = i.tickets
+    return newLim
+
+        
+
+def Astar(map,coords,start,goal,lim_exp,lim_depth, maxTickets):
 
     #initialize
 
-    dist = distance(coords[start-1 ][0],coords[start-1][1],coords[goal -1][0],coords[goal -1 ][1])
+    maxTaxiTickets = maxTickets[0]
+    maxBusTickets = maxTickets[1]
+    maxMetroTickets = maxTickets[2]
+
+
+
+    dist = distance(coords[start-1 ][0],coords[goal-1][0],coords[start -1][1],coords[goal -1 ][1])
 
 
     start_junc = Junction(start,dist)
 
 
-    end_junc = Junction(goal,0)
+    end_junc = Junction(goal,0, math.inf)
 
 
     exp_list = []
@@ -43,73 +70,114 @@ def Astar(map,coords,start,goal,lim_exp,lim_depth):
 
     ger_list.append(start_junc)
 
+    lim = start_junc.tickets
+
+
 
     while len(ger_list) > 0:
 
-       
+    
         #Atualiza o node a ser expandido para cada agente
-        current_node = ger_list[0]
-        current_index = 0
         for j, node in enumerate(ger_list):
-
-            if node.sum < current_node.sum :
-
-                current_node = node
+            if node.tickets <= lim:
+                current_junc = ger_list[0]
+                current_index = j
+        for j, node in enumerate(ger_list):
+            if node.d <= current_junc.d and node.tickets <= lim  :
+    
+                current_junc = node
                 current_index = j
 
         ger_list.pop(current_index)
-        exp_list.append(current_node)
+        
+        exp_list.append( current_junc)
 
-  
+    
+
         #Verifica se esta no goal
         
-        if current_node == end_junc:
-            #perfect
-
-
+        if  current_junc.id == end_junc.id:
             res = []
-            current = current_node
+            current =  current_junc
             while current is not None:
                 res.append([current.transport,[current.id]])
                 current = current.parent
-
-            print(res)
             return res[::-1] # Return reversed path
+                
 
         adjacentJuncs =[]
 
 
-        for newJunc in map[current_node.id ]:
-            
-            
-            newJuncID = newJunc[1]
-            newJuncDist = distance(coords[newJuncID -1][0],coords[newJuncID -1 ][1], coords[goal -1 ][0],coords[goal -1 ][1])
-            childJunc = Junction(newJuncID, newJuncDist,current_node)
+        for newJunc in map[ current_junc.id ]:
 
+            newJuncID = newJunc[1]
             newJuncTransport = newJunc[0]
-            adjacentJuncs.append([newJuncTransport,childJunc])
-       
-       #adjac[0] -> meio de transporte para essa junction
-       #adjac[1] -> estrutura da junction
+
+
+            
+            if current_junc.parent and current_junc.parent.id == newJunc[1]: 
+                continue
+            
+            if newJuncTransport == 0 and current_junc.totalTransport[0] >= maxTaxiTickets:
+                continue
+            elif newJuncTransport == 1 and current_junc.totalTransport[1] >= maxBusTickets:
+                continue 
+            elif  newJuncTransport == 2 and current_junc.totalTransport[2] >= maxMetroTickets:
+                continue
+
+            
+            childTotalTransport = []
+            childTotalTransport.append(current_junc.totalTransport[0])
+            childTotalTransport.append(current_junc.totalTransport[1])
+            childTotalTransport.append(current_junc.totalTransport[2])
+            
+            
+            newJuncDist = distance(coords[newJuncID -1][0],coords[goal -1 ][0], coords[newJuncID -1 ][1], coords[goal -1 ][1])
+            childJunc = Junction(newJuncID, newJuncDist, current_junc, childTotalTransport)
+
+           
+            
+            childJunc.transport = [newJuncTransport]
+            childTaxiTickets = childTotalTransport[0] +1
+            childBusTickets = childTotalTransport[1] +1
+            childMetroTickets = childTotalTransport[2] +1
+            
+            
+
+            if newJuncTransport == 0:
+                childJunc.totalTransport[0] = childTaxiTickets  
+            elif newJuncTransport == 1:
+                childJunc.totalTransport[1] = childBusTickets 
+            elif newJuncTransport == 2:
+                childJunc.totalTransport[2] = childMetroTickets
+
+            
+            adjacentJuncs.append(childJunc)
+
+
+        #found = 0
   
         for adjac in adjacentJuncs:
+            
 
-            for exp_junc in exp_list:
-                if adjac[1] == exp_junc:
-                    continue
+            if adjac in exp_list:
+                continue
+       
+            
+            adjac.tickets =  current_junc.tickets + 1
+            adjac.sum = adjac.d + adjac.tickets
 
-            adjac[1].tickets = current_node.tickets + 1
-            adjac[1].sum = adjac[1].d + adjac[1].tickets
-
-            # Child is already in the open list
-
-            for junc in ger_list:
-                if junc == adjac[1] and adjac[1].tickets > junc.tickets:
-                    continue
 
             # Add the child to the open list
-            adjac[1].transport = [adjac[0]]  #tem que ser uma lista de um elemento por causa do formato do result
-            ger_list.append(adjac[1])
+            #tem que ser uma lista de um elemento por causa do formato do result
+            ger_list.append(adjac)
+        if len(ger_list) > 0:
+            lim = getNewLim(ger_list)
 
-          
 
+    return []
+       
+        
+            
+
+        
