@@ -10,7 +10,7 @@ class Junction:
         self.transport = [] 
         self.totalTransport = totalTransport #transporte até aquele ponto
         self.tickets = 0 #bilhetes ate este ponto
-        self.visited
+
         #self.sum = self.d + self.tickets caminho ate ao ponto mais distancia ate goal
 
 
@@ -24,25 +24,20 @@ class Junction:
 def distance(x1,x2,y1,y2):
     return math.sqrt((x1-x2)**2 + (y1 - y2)**2)
 
-def checkempty(size,list):
-    for i in range(size):
-        if list[i] != []:
-            return False
-    return True
 
-def cleanExpList(exp_list, limit):
-    for j,junc in enumerate(exp_list):
-        if junc.tickets > limit:
-            exp_list.pop(j)
-    return exp_list
+# def cleanExpList(exp_list, limit):
+#     for j,junc in enumerate(exp_list):
+#         if junc.tickets > limit:
+#             exp_list.pop(j)
+#     return exp_list
 
 
-def getNewLim(ger_list):
-    newLim = ger_list[0].tickets
-    for i in ger_list:
-        if i.tickets < newLim:
-            newLim = i.tickets
-    return newLim
+# def getNewLim(ger_list):
+#     newLim = ger_list[0].tickets
+#     for i in ger_list:
+#         if i.tickets < newLim:
+#             newLim = i.tickets
+#     return newLim
 
         
 
@@ -63,6 +58,8 @@ def Astar(map,coords,start,goal,lim_exp,lim_depth, maxTickets, alreadyOccupied, 
 
 
     end_junc = Junction(goal,0, math.inf)
+
+    nExp = 0
 
 
     exp_list = []
@@ -87,17 +84,23 @@ def Astar(map,coords,start,goal,lim_exp,lim_depth, maxTickets, alreadyOccupied, 
                 current_index = j
                 break
         for j, node in enumerate(ger_list):
-            if node.d < current_junc.d and node.tickets == lim :
+            if   node.tickets == lim :
                 current_junc = node
                 current_index = j
         if current_index == -1:
-            lim = getNewLim(ger_list)
+            lim += 1
+            if lim == lim_depth:
+                print("Reached maximum of depth")
             continue
 
         ger_list.pop(current_index)
         
         exp_list.append( current_junc)
+        
 
+        nExp += 1
+        if nExp == lim_exp:
+            print("Reached maximum expansions")
         
 
         #Verifica se esta no goal
@@ -109,6 +112,7 @@ def Astar(map,coords,start,goal,lim_exp,lim_depth, maxTickets, alreadyOccupied, 
                 while current is not None:
                     res.append([current.transport,[current.id]])
                     current = current.parent
+                #print(nExp)
                 return res[::-1] # Return reversed path
                 
 
@@ -125,16 +129,20 @@ def Astar(map,coords,start,goal,lim_exp,lim_depth, maxTickets, alreadyOccupied, 
 
             newJuncID = newJunc[1]
             newJuncTransport = newJunc[0]
-         
+
+            elipseCenterX = (coords[start-1][0] + coords[goal-1][0])/2
+            elipseCenterY = (coords[start-1][1] + coords[goal-1][1])/2
+
+            
+            if ((((coords[newJuncID-1][0]-elipseCenterX)**2)/(dist/2)**2) + (((coords[newJuncID-1][1]-elipseCenterY)**2)/(dist/2)**2)) > 2: # tem que estar dentro da circunferencia eliptoide
+                continue
 
             if newJuncID in positionsOccupied:
                continue
-
             
-            if current_junc.parent and current_junc.parent.id == newJunc[1] and not correction: 
+            if current_junc.parent and current_junc.parent.id == newJuncID and not correction: 
                 continue
-
-
+            
     
             if newJuncTransport == 0 and current_junc.totalTransport[0] >= maxTaxiTickets:
                 continue
@@ -151,8 +159,7 @@ def Astar(map,coords,start,goal,lim_exp,lim_depth, maxTickets, alreadyOccupied, 
             childTotalTransport.append(current_junc.totalTransport[1])
             childTotalTransport.append(current_junc.totalTransport[2])
             
-            
-            newJuncDist = distance(coords[newJuncID -1][0],coords[goal -1 ][0], coords[newJuncID -1 ][1], coords[goal -1 ][1])
+            newJuncDist = distance(coords[newJuncID -1][0],coords[goal -1][0], coords[newJuncID -1 ][1], coords[goal -1][1])
             childJunc = Junction(newJuncID, newJuncDist, current_junc, childTotalTransport)
 
            
@@ -191,8 +198,8 @@ def Astar(map,coords,start,goal,lim_exp,lim_depth, maxTickets, alreadyOccupied, 
             # Add the child to the open list
             #tem que ser uma lista de um elemento por causa do formato do result
             ger_list.append(adjac)
-        if len(ger_list) > 0:
-            lim = getNewLim(ger_list)
+
+            
 
 
     return []

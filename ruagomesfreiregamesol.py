@@ -23,13 +23,6 @@ def updateTickets(tickets, solutionSet, index, mode):
         tickets[2] += 1
     return tickets
 
-def getOffset(solutionSet, missingLen, nextLongestPath):
-  offset = []
-  for step in solutionSet:
-    if len(step) >= nextLongestPath+missingLen :
-      offset.append(step[nextLongestPath-1:-1][0])
-
-  return offset
 
 
 def formatOutput(solutionSet):
@@ -85,6 +78,8 @@ class SearchProblem:
       if incompletePath:
         tickets =  updateTickets(tickets, solutionSet, offsetIndex,2)
         offsetPath = Astar(self.model, self.auxheur, init[offsetIndex], self.goal[offsetIndex], limitexp, limitdepth, tickets,alreadyDone ,True, longestPath)
+        
+
         if offsetPath == []:  #quer dizer que nao existe um path naquele numero de steps
           longestPath += 1
           continue
