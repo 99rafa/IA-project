@@ -45,10 +45,10 @@ def getNewLim(ger_list):
 
         
 
-def Astar(map,coords,start,goal,lim_exp,lim_depth, maxTickets):
+def Astar(map,coords,start,goal,lim_exp,lim_depth, maxTickets, alreadyOccupied, correction, correctLen):
 
     #initialize
-
+    pathsDone = len(alreadyOccupied)
     maxTaxiTickets = maxTickets[0]
     maxBusTickets = maxTickets[1]
     maxMetroTickets = maxTickets[2]
@@ -69,55 +69,71 @@ def Astar(map,coords,start,goal,lim_exp,lim_depth, maxTickets):
 
 
     ger_list.append(start_junc)
-
     lim = start_junc.tickets
-
-
-
     while len(ger_list) > 0:
 
-    
         #Atualiza o node a ser expandido para cada agente
+        current_index = -1
+        positionsOccupied = []
+        if pathsDone > 0:
+            for i in range(pathsDone):
+                if lim + 1 < len(alreadyOccupied[i]) :
+                    positionsOccupied.append(alreadyOccupied[i][lim+1][1][0])  # o [0] e apenas para me dar so o valor dentro da lista e nao os brackets
+                  
         for j, node in enumerate(ger_list):
-            if node.tickets <= lim:
+            if node.tickets == lim and node.id:
                 current_junc = ger_list[0]
                 current_index = j
+                break
         for j, node in enumerate(ger_list):
-            if node.d <= current_junc.d and node.tickets <= lim  :
-    
+            if node.d < current_junc.d and node.tickets == lim :
                 current_junc = node
                 current_index = j
+        if current_index == -1:
+            lim = getNewLim(ger_list)
+            continue
 
         ger_list.pop(current_index)
         
         exp_list.append( current_junc)
 
-    
+        
 
         #Verifica se esta no goal
         
         if  current_junc.id == end_junc.id:
-            res = []
-            current =  current_junc
-            while current is not None:
-                res.append([current.transport,[current.id]])
-                current = current.parent
-            return res[::-1] # Return reversed path
+            if not correction or (correction and lim == correctLen -1 ): # -1 porque o lim começa em 0
+                res = []
+                current =  current_junc
+                while current is not None:
+                    res.append([current.transport,[current.id]])
+                    current = current.parent
+                return res[::-1] # Return reversed path
                 
 
         adjacentJuncs =[]
 
+        
+
+        if correction and current_junc.tickets == correctLen:
+            continue
+
 
         for newJunc in map[ current_junc.id ]:
+            
 
             newJuncID = newJunc[1]
             newJuncTransport = newJunc[0]
 
 
+            if newJuncID in positionsOccupied:
+               continue
+
             
-            if current_junc.parent and current_junc.parent.id == newJunc[1]: 
+            if current_junc.parent and current_junc.parent.id == newJunc[1] and not correction: 
                 continue
-            
+
+    
             if newJuncTransport == 0 and current_junc.totalTransport[0] >= maxTaxiTickets:
                 continue
             elif newJuncTransport == 1 and current_junc.totalTransport[1] >= maxBusTickets:
@@ -125,6 +141,8 @@ def Astar(map,coords,start,goal,lim_exp,lim_depth, maxTickets):
             elif  newJuncTransport == 2 and current_junc.totalTransport[2] >= maxMetroTickets:
                 continue
 
+            
+            
             
             childTotalTransport = []
             childTotalTransport.append(current_junc.totalTransport[0])
@@ -153,16 +171,16 @@ def Astar(map,coords,start,goal,lim_exp,lim_depth, maxTickets):
 
             
             adjacentJuncs.append(childJunc)
+            
 
-
-        #found = 0
   
         for adjac in adjacentJuncs:
             
 
-            if adjac in exp_list:
+            if adjac in exp_list and not correction:
                 continue
-       
+                
+                
             
             adjac.tickets =  current_junc.tickets + 1
             adjac.sum = adjac.d + adjac.tickets
