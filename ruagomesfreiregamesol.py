@@ -61,7 +61,13 @@ class SearchProblem:
 
     incompletePath = None
 
-    fixedOffset = False
+    fixedOffset = True
+
+    for i in range(len(solutionSet)):
+      if len(solutionSet[i]) != longestPath:
+        fixedOffset = False
+        break
+
 
     while not fixedOffset and size > 1:
       alreadyDone = []
@@ -78,7 +84,7 @@ class SearchProblem:
       if incompletePath:
         tickets =  updateTickets(tickets, solutionSet, offsetIndex,2)
         offsetPath = Astar(self.model, self.auxheur, init[offsetIndex], self.goal[offsetIndex], limitexp, limitdepth, tickets,alreadyDone ,True, longestPath)
-        
+
 
         if offsetPath == []:  #quer dizer que nao existe um path naquele numero de steps
           longestPath += 1
@@ -117,6 +123,8 @@ class SearchProblem:
         auxGoal = self.goal[shortestThief]
         self.goal[shortestThief] = self.goal[i]
         self.goal[i] = auxGoal
+        shortestPath = math.inf
+       
 
   
   
@@ -140,6 +148,8 @@ class SearchProblem:
         longestPath = len(solution)
       solutionSet.append(solution)
       tickets = updateTickets(tickets, solutionSet, i, 1)
+      print(solution)
+
 
     solutionSet = self.fixOffset(size, init,solutionSet,longestPath,limitexp, limitdepth, tickets)
 

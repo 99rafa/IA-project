@@ -83,10 +83,6 @@ def Astar(map,coords,start,goal,lim_exp,lim_depth, maxTickets, alreadyOccupied, 
                 current_junc = ger_list[0]
                 current_index = j
                 break
-        for j, node in enumerate(ger_list):
-            if   node.tickets == lim :
-                current_junc = node
-                current_index = j
         if current_index == -1:
             lim += 1
             if lim == lim_depth:
@@ -136,6 +132,7 @@ def Astar(map,coords,start,goal,lim_exp,lim_depth, maxTickets, alreadyOccupied, 
             
             if ((((coords[newJuncID-1][0]-elipseCenterX)**2)/(dist/2)**2) + (((coords[newJuncID-1][1]-elipseCenterY)**2)/(dist/2)**2)) > 2: # tem que estar dentro da circunferencia eliptoide
                 continue
+
 
             if newJuncID in positionsOccupied:
                continue
