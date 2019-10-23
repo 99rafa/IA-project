@@ -45,6 +45,7 @@ def formatOutput(solutionSet):
     for j in range(len(solutionSet)):
       outputSolution[i][0] += solutionSet[j][i][0]
       outputSolution[i][1] += solutionSet[j][i][1]
+      
   return outputSolution
 
 
@@ -58,52 +59,36 @@ class Agent:
 class SearchProblem:
 
   def __init__(self, goal, model, auxheur = []):
-    ##
-    ## to implement
-    ## 
+    
     self.goal = goal
     self.model = model
     self.auxheur = auxheur  
-    
-  
-  
 
-  def search(self, init, limitexp = 2000, limitdepth = 10, tickets = [math.inf,math.inf,math.inf]):
-  
-
-    size = len(init)
-    
-    longestPath = 0
-
-    solutionSet = []
-
-    for i in range(size):
-      solution = Astar(self.model, self.auxheur, init[i], self.goal[i], limitexp, limitdepth, tickets, solutionSet,False,0)
-      if len(solution) > longestPath:
-        longestPath = len(solution)
-      solutionSet.append(solution)
-      tickets = updateTickets(tickets, solutionSet, i, 1)
-
-
-    nextLongestPath = 0
+  def fixOffset(self,size,init, solutionSet, longestPath, limitexp, limitdepth, tickets) :
 
     incompletePath = None
 
+    fixedOffset = False
 
-    for l in range(size):
+    while not fixedOffset and size > 1:
       alreadyDone = []
-      for i in range(size):
-        if len(solutionSet[i]) < longestPath and len(solutionSet[i]) > nextLongestPath:
-          nextLongestPath = len(solutionSet[i])
+
+      for i in range(len(solutionSet)):
+        if len(solutionSet[i]) < longestPath :
           incompletePath = solutionSet[i]
           offsetIndex = i
+
       for j in solutionSet:
         if len(j) == longestPath:
           alreadyDone.append(j)
+
       if incompletePath:
         tickets =  updateTickets(tickets, solutionSet, offsetIndex,2)
-        solutionSet.pop(offsetIndex)
         offsetPath = Astar(self.model, self.auxheur, init[offsetIndex], self.goal[offsetIndex], limitexp, limitdepth, tickets,alreadyDone ,True, longestPath)
+        if offsetPath == []:  #quer dizer que nao existe um path naquele numero de steps
+          longestPath += 1
+          continue
+        solutionSet.pop(offsetIndex)
 
         for k in range(size): 
           if [init[k]] == offsetPath[0][1]:  #para ter o id do start
@@ -112,10 +97,57 @@ class SearchProblem:
         
         solutionSet = solutionSet[0:index] + [offsetPath] + solutionSet[index:]
         tickets = updateTickets(tickets, solutionSet, index, 1)
+        fixedOffset = True
 
-      nextLongestPath = 0
+        for path in solutionSet:
+          if len(path) != longestPath:
+            fixedOffset = False
+            break        
+
       incompletePath = None
       offsetPath = []
+    return solutionSet
+
+
+  def arrangePursuitOder(self,init):
+
+    shortestPath = math.inf
+
+    for i in range(len(init)):
+        for j in range(len(self.goal)):
+          currentDist = distance(self.auxheur[init[i]-1][0], self.auxheur[self.goal[j]-1][0], self.auxheur[init[i]-1][1], self.auxheur[self.goal[j]-1][1])
+          if currentDist < shortestPath:
+            shortestPath = currentDist
+            shortestThief = j
+        auxGoal = self.goal[shortestThief]
+        self.goal[shortestThief] = self.goal[i]
+        self.goal[i] = auxGoal
+
+  
+  
+
+  def search(self, init, limitexp = 2000, limitdepth = 10, tickets = [math.inf,math.inf,math.inf], anyorder=False):
+  
+
+    size = len(init)
+    
+    longestPath = 0
+
+    solutionSet = []
+
+    if anyorder:
+      self.arrangePursuitOder(init)          
+
+
+    for i in range(size):
+      solution = Astar(self.model, self.auxheur, init[i], self.goal[i], limitexp, limitdepth, tickets, solutionSet,False,0)
+      if len(solution) > longestPath:
+        longestPath = len(solution)
+      solutionSet.append(solution)
+      tickets = updateTickets(tickets, solutionSet, i, 1)
+
+    solutionSet = self.fixOffset(size, init,solutionSet,longestPath,limitexp, limitdepth, tickets)
+
     outputSolution = formatOutput(solutionSet)
 
     return outputSolution

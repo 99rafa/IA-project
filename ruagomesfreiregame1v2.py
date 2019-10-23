@@ -71,7 +71,7 @@ def validatepath(oP,oI,U,tickets=[25,25,25]):
 tinittotal = time.process_time()
 
 # print("\n(2 val) Exercise 1 - One agent, No limits")
-# print("Init [30] Goal [56]")
+# print("Init [30] Goal [61]")
 # SP = SearchProblem(goal = [56], model = U, auxheur=coords)
 # tinit = time.process_time()
 # I = [30]
@@ -146,10 +146,10 @@ tinittotal = time.process_time()
 #         print("invalid path")
 
 print("\n(4 val) Exercise 5 - Three agents, Limits, Any-Order")
-print("Init [30,40,109] Goal [61,60,71]")
-SP = SearchProblem(goal = [63,61,70], model = U, auxheur=coords)
+print("Init [30,40,109] Goal [63,61,70]")
+SP = SearchProblem(goal = [42,55,24], model = U, auxheur=coords)
 tinit = time.process_time()
-I = [30,40,109]
+I = [6,9,71]
 nn = SP.search(I,limitexp = 3000, limitdepth = 10, tickets = [5,20,2], anyorder = True)
 tend = time.process_time()
 print("%.1fms"%((tend-tinit)*1000))

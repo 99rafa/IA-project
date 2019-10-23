@@ -10,7 +10,8 @@ class Junction:
         self.transport = [] 
         self.totalTransport = totalTransport #transporte até aquele ponto
         self.tickets = 0 #bilhetes ate este ponto
-        self.sum = self.d + self.tickets #caminho ate ao ponto mais distancia ate goal
+        self.visited
+        #self.sum = self.d + self.tickets caminho ate ao ponto mais distancia ate goal
 
 
     def __eq__(self,other):
@@ -81,7 +82,7 @@ def Astar(map,coords,start,goal,lim_exp,lim_depth, maxTickets, alreadyOccupied, 
                     positionsOccupied.append(alreadyOccupied[i][lim+1][1][0])  # o [0] e apenas para me dar so o valor dentro da lista e nao os brackets
                   
         for j, node in enumerate(ger_list):
-            if node.tickets == lim and node.id:
+            if node.tickets == lim:
                 current_junc = ger_list[0]
                 current_index = j
                 break
@@ -124,7 +125,7 @@ def Astar(map,coords,start,goal,lim_exp,lim_depth, maxTickets, alreadyOccupied, 
 
             newJuncID = newJunc[1]
             newJuncTransport = newJunc[0]
-
+         
 
             if newJuncID in positionsOccupied:
                continue
@@ -132,6 +133,7 @@ def Astar(map,coords,start,goal,lim_exp,lim_depth, maxTickets, alreadyOccupied, 
             
             if current_junc.parent and current_junc.parent.id == newJunc[1] and not correction: 
                 continue
+
 
     
             if newJuncTransport == 0 and current_junc.totalTransport[0] >= maxTaxiTickets:
@@ -183,7 +185,7 @@ def Astar(map,coords,start,goal,lim_exp,lim_depth, maxTickets, alreadyOccupied, 
                 
             
             adjac.tickets =  current_junc.tickets + 1
-            adjac.sum = adjac.d + adjac.tickets
+            #adjac.sum = adjac.d + adjac.tickets
 
 
             # Add the child to the open list
