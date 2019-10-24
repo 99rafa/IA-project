@@ -15,10 +15,7 @@ class Junction:
 
 
     def __eq__(self,other):
-        if self.parent and other.parent:
-            return self.id == other.id and self.parent.id == other.parent.id and self.transport == other.transport
-        else:
-             return self.id == other.id and self.transport == other.transport
+        return self.id == other.id
 
 
 def distance(x1,x2,y1,y2):
@@ -79,10 +76,15 @@ def Astar(map,coords,start,goal,lim_exp,lim_depth, maxTickets, alreadyOccupied, 
                     positionsOccupied.append(alreadyOccupied[i][lim+1][1][0])  # o [0] e apenas para me dar so o valor dentro da lista e nao os brackets
                   
         for j, node in enumerate(ger_list):
-            if node.tickets == lim:
-                current_junc = ger_list[0]
+            if node.tickets == lim :
+                current_junc = ger_list[j]
                 current_index = j
                 break
+        for j, node in enumerate(ger_list):
+            if node.tickets == lim and node.d < current_junc.d:
+                current_junc = ger_list[j]
+                current_index = j
+
         if current_index == -1:
             lim += 1
             if lim == lim_depth:
@@ -126,19 +128,15 @@ def Astar(map,coords,start,goal,lim_exp,lim_depth, maxTickets, alreadyOccupied, 
             newJuncID = newJunc[1]
             newJuncTransport = newJunc[0]
 
-            elipseCenterX = (coords[start-1][0] + coords[goal-1][0])/2
-            elipseCenterY = (coords[start-1][1] + coords[goal-1][1])/2
-
-            
-            if ((((coords[newJuncID-1][0]-elipseCenterX)**2)/(dist/2)**2) + (((coords[newJuncID-1][1]-elipseCenterY)**2)/(dist/2)**2)) > 2: # tem que estar dentro da circunferencia eliptoide
-                continue
-
 
             if newJuncID in positionsOccupied:
                continue
             
+            
             if current_junc.parent and current_junc.parent.id == newJuncID and not correction: 
                 continue
+
+            
             
     
             if newJuncTransport == 0 and current_junc.totalTransport[0] >= maxTaxiTickets:
@@ -159,7 +157,12 @@ def Astar(map,coords,start,goal,lim_exp,lim_depth, maxTickets, alreadyOccupied, 
             newJuncDist = distance(coords[newJuncID -1][0],coords[goal -1][0], coords[newJuncID -1 ][1], coords[goal -1][1])
             childJunc = Junction(newJuncID, newJuncDist, current_junc, childTotalTransport)
 
-           
+            if childJunc in exp_list and not correction:
+                continue
+
+            if correction and newJuncDist > current_junc.d and  current_junc.parent and current_junc.parent.id == newJuncID:
+               continue
+            
             
             childJunc.transport = [newJuncTransport]
             childTaxiTickets = childTotalTransport[0] +1
@@ -181,22 +184,10 @@ def Astar(map,coords,start,goal,lim_exp,lim_depth, maxTickets, alreadyOccupied, 
 
   
         for adjac in adjacentJuncs:
-            
-
-            if adjac in exp_list and not correction:
-                continue
-                
-                
-            
+    
             adjac.tickets =  current_junc.tickets + 1
             #adjac.sum = adjac.d + adjac.tickets
-
-
-            # Add the child to the open list
-            #tem que ser uma lista de um elemento por causa do formato do result
             ger_list.append(adjac)
-
-            
 
 
     return []
