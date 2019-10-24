@@ -84,7 +84,7 @@ class SearchProblem:
       if incompletePath:
         tickets =  updateTickets(tickets, solutionSet, offsetIndex,2)
         offsetPath = Astar(self.model, self.auxheur, init[offsetIndex], self.goal[offsetIndex], limitexp, limitdepth, tickets,alreadyDone ,True, longestPath)
-
+        
 
         if offsetPath == []:  #quer dizer que nao existe um path naquele numero de steps
           longestPath += 1

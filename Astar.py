@@ -136,6 +136,8 @@ def Astar(map,coords,start,goal,lim_exp,lim_depth, maxTickets, alreadyOccupied, 
             if current_junc.parent and current_junc.parent.id == newJuncID and not correction: 
                 continue
 
+            if correction and lim >= 5 and current_junc.parent.id == newJuncID and current_junc.parent.id != goal and newJuncID != goal:
+                continue
             
             
     
